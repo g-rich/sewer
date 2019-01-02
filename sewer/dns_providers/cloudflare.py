@@ -31,7 +31,7 @@ class CloudFlareDns(common.BaseDns):
 
     def find_dns_zone(self, domain_name):
         self.logger.debug("find_dns_zone")
-        url = urllib.parse.urljoin(self.CLOUDFLARE_API_BASE_URL, "zones?status=active")
+        url = urllib.parse.urljoin(self.CLOUDFLARE_API_BASE_URL, "zones?status=active&name={}".format(domain_name))
         headers = {"X-Auth-Email": self.CLOUDFLARE_EMAIL, "X-Auth-Key": self.CLOUDFLARE_API_KEY}
         find_dns_zone_response = requests.get(url, headers=headers, timeout=self.HTTP_TIMEOUT)
         self.logger.debug(
