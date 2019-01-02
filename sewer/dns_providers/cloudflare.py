@@ -2,6 +2,8 @@ import urllib.parse
 
 import requests
 
+import tldextract
+
 from . import common
 
 
@@ -31,7 +33,21 @@ class CloudFlareDns(common.BaseDns):
 
     def find_dns_zone(self, domain_name):
         self.logger.debug("find_dns_zone")
-        url = urllib.parse.urljoin(self.CLOUDFLARE_API_BASE_URL, "zones?status=active&name={}".format(domain_name))
+
+        parsed_domain_name = tldextract.extract(domain_name)
+
+        if (parsed_domain_name.domain and parsed_domain_name.suffix):
+            dns_name = "{sld}.{tld}".format(sld=parsed_domain_name.domain,
+                                            tld=parsed_domain_name.suffix)
+        else:
+            raise ValueError(
+                "Error parsing domain name: {domain_name}, {parsed_domain_name}".format(
+                    domain_name=domain_name,
+                    parsed_domain_name=parsed_domain_name
+                )
+            )
+
+        url = urllib.parse.urljoin(self.CLOUDFLARE_API_BASE_URL, "zones?status=active&name={}".format(dns_name))
         headers = {"X-Auth-Email": self.CLOUDFLARE_EMAIL, "X-Auth-Key": self.CLOUDFLARE_API_KEY}
         find_dns_zone_response = requests.get(url, headers=headers, timeout=self.HTTP_TIMEOUT)
         self.logger.debug(
